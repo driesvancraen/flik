@@ -15,10 +15,7 @@ const agentUpdateSchema = z.object({
   llmMaxTokens: z.number().min(1).max(32000),
 });
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request) {
   try {
     const session = await auth();
 
@@ -26,9 +23,11 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const id = request.url.split("/").pop();
+
     const agent = await db.agent.findUnique({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -43,10 +42,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request) {
   try {
     const session = await auth();
 
@@ -54,12 +50,13 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const json = await req.json();
+    const id = request.url.split("/").pop();
+    const json = await request.json();
     const body = agentUpdateSchema.parse(json);
 
     const agent = await db.agent.findUnique({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -70,7 +67,7 @@ export async function PATCH(
 
     const updatedAgent = await db.agent.update({
       where: {
-        id: params.id,
+        id,
       },
       data: body,
     });
@@ -85,21 +82,15 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request) {
   try {
-    const [session, resolvedParams] = await Promise.all([
-      auth(),
-      params,
-    ]);
+    const session = await auth();
 
     if (!session?.user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { id } = resolvedParams;
+    const id = request.url.split("/").pop();
 
     // Get the agent and verify ownership
     const agent = await db.agent.findUnique({

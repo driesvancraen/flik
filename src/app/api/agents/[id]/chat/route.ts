@@ -50,7 +50,7 @@ export async function POST(
     }
 
     // Get or create conversation
-    let conversation = body.conversationId
+    const conversation = body.conversationId
       ? await db.conversation.findUnique({
           where: {
             id: body.conversationId,

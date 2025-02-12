@@ -26,9 +26,10 @@ export async function auth() {
         async remove(name: string, options: CookieOptions) {
           const cookieStore = await Promise.resolve(cookies());
           try {
-            cookieStore.delete(name, {
+            cookieStore.set(name, '', {
               ...options,
               path: options.path || '/',
+              expires: new Date(0),
             });
           } catch (error) {
             // Ignore cookie errors in middleware
