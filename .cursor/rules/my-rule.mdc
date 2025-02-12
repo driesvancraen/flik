@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+---
+- use NextJS 14
+- use Prisma
