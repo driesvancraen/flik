@@ -64,7 +64,7 @@ export async function createVectorStore(documents: Document[], agent: Agent) {
     embeddings,
     {
       client,
-      tableName: "documents", // Make sure this table exists with pgvector extension
+      tableName: "langchain_vectors", // Updated to match our SQL migration
       queryName: "match_documents",
     }
   );
