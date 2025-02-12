@@ -30,6 +30,14 @@ export async function POST(req: Request) {
       data: {
         ...body,
         userId: session.user.id,
+        knowledgeBase: {
+          create: {
+            name: `${body.name}'s Knowledge Base`,
+          },
+        },
+      },
+      include: {
+        knowledgeBase: true,
       },
     });
 

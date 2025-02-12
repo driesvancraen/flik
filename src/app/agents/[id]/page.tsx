@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MessageCircle, Share2, Settings } from "lucide-react";
 import Link from "next/link";
 import { Chat } from "./chat";
+import { Documents } from "./documents";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,7 +28,11 @@ export default async function AgentPage({ params }: PageProps) {
       userId: session.user.id,
     },
     include: {
-      knowledgeBase: true,
+      knowledgeBase: {
+        include: {
+          documents: true,
+        },
+      },
     },
   });
 
@@ -125,38 +130,7 @@ export default async function AgentPage({ params }: PageProps) {
             </dl>
           </div>
 
-          <div className="rounded-lg border bg-background p-4">
-            <h2 className="font-semibold">Knowledge Base</h2>
-            {agent.knowledgeBase ? (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium">
-                  {agent.knowledgeBase.name}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {/* Add document count here */}
-                  0 documents
-                </p>
-                <Link
-                  href={`/agents/${agent.id}/knowledge-base`}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-                >
-                  Manage Documents
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground">
-                  No knowledge base attached
-                </p>
-                <Link
-                  href={`/agents/${agent.id}/knowledge-base/create`}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-                >
-                  Create Knowledge Base
-                </Link>
-              </div>
-            )}
-          </div>
+          <Documents agentId={agent.id} knowledgeBase={agent.knowledgeBase} />
         </div>
 
         <Chat agentId={agent.id} initialMessages={conversation.messages} />

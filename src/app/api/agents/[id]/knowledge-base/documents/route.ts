@@ -4,10 +4,24 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 const documentCreateSchema = z.object({
-  name: z.string().min(1),
   content: z.string().min(1),
   type: z.enum(["TEXT", "URL"]),
 });
+
+function generateDocumentName(content: string, type: "TEXT" | "URL"): string {
+  if (type === "URL") {
+    try {
+      const url = new URL(content);
+      return url.hostname + url.pathname;
+    } catch {
+      return content.slice(0, 50);
+    }
+  }
+  
+  // For text documents, take the first line or first 50 characters
+  const firstLine = content.split('\n')[0];
+  return firstLine.slice(0, 50);
+}
 
 export async function POST(
   req: Request,
@@ -27,7 +41,6 @@ export async function POST(
     const body = documentCreateSchema.parse(json);
 
     console.log("Creating document:", {
-      name: body.name,
       type: body.type,
       contentLength: body.content.length,
     });
@@ -53,7 +66,7 @@ export async function POST(
 
     const document = await db.document.create({
       data: {
-        name: body.name,
+        name: generateDocumentName(body.content, body.type),
         content: body.content,
         type: body.type,
         knowledgeBaseId: agent.knowledgeBase.id,
@@ -62,7 +75,6 @@ export async function POST(
 
     console.log("Document created:", {
       id: document.id,
-      name: document.name,
       type: document.type,
     });
 

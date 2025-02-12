@@ -46,6 +46,7 @@ export default function AgentSettingsPage({
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [agent, setAgent] = useState<Agent | null>(null);
 
   const resolvedParams = use(params);
   const provider = form.watch("llmProvider");
@@ -55,18 +56,19 @@ export default function AgentSettingsPage({
       try {
         const response = await fetch(`/api/agents/${resolvedParams.id}`);
         if (!response.ok) throw new Error("Failed to load agent");
-        const agent: Agent = await response.json();
+        const agentData: Agent = await response.json();
         
+        setAgent(agentData);
         form.reset({
-          name: agent.name,
-          description: agent.description || "",
-          systemPrompt: agent.systemPrompt,
-          firstMessage: agent.firstMessage,
-          isPublic: agent.isPublic,
-          llmProvider: agent.llmProvider,
-          llmModel: agent.llmModel,
-          llmTemperature: agent.llmTemperature,
-          llmMaxTokens: agent.llmMaxTokens,
+          name: agentData.name,
+          description: agentData.description || "",
+          systemPrompt: agentData.systemPrompt,
+          firstMessage: agentData.firstMessage,
+          isPublic: agentData.isPublic,
+          llmProvider: agentData.llmProvider,
+          llmModel: agentData.llmModel,
+          llmTemperature: agentData.llmTemperature,
+          llmMaxTokens: agentData.llmMaxTokens,
         });
       } catch (error) {
         toast({

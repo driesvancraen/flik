@@ -128,16 +128,18 @@ export function Chat({ agentId, initialMessages }: ChatProps) {
       <div className="flex h-[600px] flex-col">
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className="flex items-start gap-3">
-                <div className="rounded-md bg-primary/10 p-2">
-                  <MessageCircle className="h-4 w-4" />
+            {messages
+              .filter(message => message.role !== "SYSTEM")
+              .map((message) => (
+                <div key={message.id} className="flex items-start gap-3">
+                  <div className="rounded-md bg-primary/10 p-2">
+                    <MessageCircle className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                </div>
-              </div>
-            ))}
+              ))}
             {isLoading && (
               <div className="flex items-center justify-center">
                 <div className="animate-pulse text-sm text-muted-foreground">

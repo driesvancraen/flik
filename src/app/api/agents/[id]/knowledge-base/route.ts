@@ -111,4 +111,51 @@ export async function GET(
     console.error("Knowledge base GET error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const [session, resolvedParams] = await Promise.all([
+      auth(),
+      params,
+    ]);
+
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Verify agent ownership
+    const agent = await db.agent.findUnique({
+      where: {
+        id: resolvedParams.id,
+        userId: session.user.id,
+      },
+      include: {
+        knowledgeBase: true,
+      },
+    });
+
+    if (!agent) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
+    if (!agent.knowledgeBase) {
+      return new NextResponse("Knowledge base not found", { status: 404 });
+    }
+
+    // Delete the knowledge base (this will cascade delete all documents)
+    await db.knowledgeBase.delete({
+      where: {
+        id: agent.knowledgeBase.id,
+      },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("Knowledge base DELETE error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
 } 

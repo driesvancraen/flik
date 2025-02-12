@@ -18,11 +18,6 @@ const navigation = [
     icon: Bot,
   },
   {
-    name: "Knowledge Base",
-    href: "/knowledge-base",
-    icon: Database,
-  },
-  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
