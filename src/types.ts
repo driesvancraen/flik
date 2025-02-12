@@ -1,4 +1,4 @@
-export type DocumentType = "TEXT" | "URL";
+export type DocumentType = "PDF" | "DOC" | "URL" | "TEXT";
 
 export interface Document {
   id: string;

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { MessageCircle, Share2, Settings } from "lucide-react";
+import { MessageCircle, Settings } from "lucide-react";
 import Link from "next/link";
 import { Chat } from "./chat";
 import { Documents } from "./documents";
@@ -97,12 +97,6 @@ export default async function AgentPage({ params }: PageProps) {
             <Settings className="h-4 w-4" />
             Settings
           </Link>
-          {agent.isPublic && (
-            <button className="inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent">
-              <Share2 className="h-4 w-4" />
-              Share
-            </button>
-          )}
         </div>
       </div>
 

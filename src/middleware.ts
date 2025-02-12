@@ -36,6 +36,11 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession();
 
+  // Allow access to shared agent routes without authentication
+  if (request.nextUrl.pathname.startsWith("/agents/share/")) {
+    return response;
+  }
+
   // If user is not signed in and the current path is not / or /auth/login,
   // redirect the user to /auth/login
   if (!session && !request.nextUrl.pathname.startsWith("/auth")) {
