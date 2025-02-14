@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { Trash } from "lucide-react";
+import { Trash, Key } from "lucide-react";
 import type { ApiKey } from "@/types";
 
 export default function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [provider, setProvider] = useState<"OPENAI" | "ANTHROPIC">("OPENAI");
-  const [apiKey, setApiKey] = useState("");
-  const [name, setName] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [anthropicKey, setAnthropicKey] = useState("");
+
+  useEffect(() => {
+    loadApiKeys();
+  }, []);
 
   async function loadApiKeys() {
     try {
@@ -29,9 +32,7 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    
+  async function handleSubmit(provider: "OPENAI" | "ANTHROPIC", key: string) {
     try {
       const response = await fetch("/api/api-keys", {
         method: "POST",
@@ -39,34 +40,35 @@ export default function SettingsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
+          name: `${provider} API Key`,
           provider,
-          key: apiKey,
+          key,
         }),
       });
 
       if (!response.ok) throw new Error();
 
       const newKey = await response.json();
-      setApiKeys((prev) => [newKey, ...prev]);
-      setName("");
-      setApiKey("");
+      setApiKeys((prev) => [newKey, ...prev.filter(k => k.provider !== provider)]);
+      
+      // Reset the input
+      if (provider === "OPENAI") {
+        setOpenaiKey("");
+      } else {
+        setAnthropicKey("");
+      }
 
       toast({
         title: "Success",
-        description: "API key added successfully",
+        description: `${provider} API key updated successfully`,
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add API key",
+        description: "Failed to update API key",
         variant: "destructive",
       });
     }
-  }
-
-  async function handleProviderChange(provider: "OPENAI" | "ANTHROPIC") {
-    setProvider(provider);
   }
 
   async function handleDelete(id: string) {
@@ -92,6 +94,9 @@ export default function SettingsPage() {
     }
   }
 
+  const activeOpenaiKey = apiKeys.find(key => key.provider === "OPENAI" && key.isActive);
+  const activeAnthropicKey = apiKeys.find(key => key.provider === "ANTHROPIC" && key.isActive);
+
   return (
     <div className="container max-w-4xl py-8">
       <div className="flex flex-col gap-8">
@@ -105,96 +110,101 @@ export default function SettingsPage() {
         <div>
           <h2 className="text-xl font-semibold">API Keys</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Add your API keys to use different LLM providers
+            Configure your API keys for different LLM providers. Only one active key per provider is allowed.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="My OpenAI Key"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                required
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Provider</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="provider"
-                    value="OPENAI"
-                    checked={provider === "OPENAI"}
-                    onChange={(e) => handleProviderChange("OPENAI")}
-                    className="h-4 w-4"
-                  />
-                  <span className="text-sm">OpenAI</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="provider"
-                    value="ANTHROPIC"
-                    checked={provider === "ANTHROPIC"}
-                    onChange={(e) => handleProviderChange("ANTHROPIC")}
-                    className="h-4 w-4"
-                  />
-                  <span className="text-sm">Anthropic</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <label htmlFor="apiKey" className="text-sm font-medium">
-                API Key
-              </label>
-              <input
-                type="password"
-                id="apiKey"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={`Enter your ${provider} API key`}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              Add API Key
-            </button>
-          </form>
-
-          <div className="mt-6 space-y-4">
-            {apiKeys.map((key) => (
-              <div
-                key={key.id}
-                className="flex items-center justify-between rounded-lg border bg-card p-4"
-              >
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            {/* OpenAI Section */}
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-medium">{key.name}</h3>
+                  <h3 className="font-medium">OpenAI</h3>
                   <p className="text-sm text-muted-foreground">
-                    {key.provider} • Added {new Date(key.createdAt).toLocaleDateString()}
+                    {activeOpenaiKey ? "API key configured" : "No API key configured"}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleDelete(key.id)}
-                  className="text-sm text-destructive hover:text-destructive/90"
-                >
-                  <Trash className="h-4 w-4" />
-                </button>
+                {activeOpenaiKey && (
+                  <button
+                    onClick={() => handleDelete(activeOpenaiKey.id)}
+                    className="text-sm text-destructive hover:text-destructive/90"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
               </div>
-            ))}
+              {!activeOpenaiKey ? (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("OPENAI", openaiKey);
+                  }}
+                  className="mt-4 space-y-4"
+                >
+                  <div className="grid gap-2">
+                    <input
+                      type="password"
+                      value={openaiKey}
+                      onChange={(e) => setOpenaiKey(e.target.value)}
+                      placeholder="Enter your OpenAI API key"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save OpenAI Key
+                  </button>
+                </form>
+              ) : null}
+            </div>
+
+            {/* Anthropic Section */}
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-medium">Anthropic</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {activeAnthropicKey ? "API key configured" : "No API key configured"}
+                  </p>
+                </div>
+                {activeAnthropicKey && (
+                  <button
+                    onClick={() => handleDelete(activeAnthropicKey.id)}
+                    className="text-sm text-destructive hover:text-destructive/90"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {!activeAnthropicKey ? (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("ANTHROPIC", anthropicKey);
+                  }}
+                  className="mt-4 space-y-4"
+                >
+                  <div className="grid gap-2">
+                    <input
+                      type="password"
+                      value={anthropicKey}
+                      onChange={(e) => setAnthropicKey(e.target.value)}
+                      placeholder="Enter your Anthropic API key"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save Anthropic Key
+                  </button>
+                </form>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

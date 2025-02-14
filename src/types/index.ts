@@ -42,6 +42,7 @@ export interface ApiKey {
   name: string;
   provider: "OPENAI" | "ANTHROPIC";
   key: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
