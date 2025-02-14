@@ -41,7 +41,7 @@ const candor = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Flik",
+  title: "MindShare",
   description: "AI Agents for your business",
 };
 
