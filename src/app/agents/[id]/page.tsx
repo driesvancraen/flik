@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Chat } from "./chat";
 import { Documents } from "./documents";
 import { ShareButton } from "./share-button";
+import type { Agent } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,6 +41,14 @@ export default async function AgentPage({ params }: PageProps) {
   if (!agent) {
     notFound();
   }
+
+  const apiKey = await db.apiKey.findFirst({
+    where: {
+      userId: session.user.id,
+      isActive: true,
+      provider: agent.llmProvider,
+    },
+  });
 
   // Get the latest conversation or create a new one
   const conversation = await db.conversation.findFirst({
@@ -113,7 +122,14 @@ export default async function AgentPage({ params }: PageProps) {
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Provider</dt>
-                <dd>{agent.llmProvider}</dd>
+                <dd className="flex items-center gap-2">
+                  {agent.llmProvider}
+                  {apiKey ? (
+                    <span className="inline-flex h-2 w-2 rounded-full bg-green-500" title="API key installed" />
+                  ) : (
+                    <span className="inline-flex h-2 w-2 rounded-full bg-destructive" title="No API key found" />
+                  )}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Model</dt>
@@ -127,13 +143,26 @@ export default async function AgentPage({ params }: PageProps) {
                 <dt className="text-muted-foreground">Max Tokens</dt>
                 <dd>{agent.llmMaxTokens}</dd>
               </div>
+              {!apiKey && (
+                <div className="mt-2 text-xs text-destructive">
+                  <Link href="/settings/api-keys" className="inline-flex items-center gap-1 hover:underline">
+                    <Settings className="h-3 w-3" />
+                    Add {agent.llmProvider} API key
+                  </Link>
+                </div>
+              )}
             </dl>
           </div>
 
           <Documents agentId={agent.id} knowledgeBase={agent.knowledgeBase} />
         </div>
 
-        <Chat agentId={agent.id} initialMessages={conversation.messages} />
+        <Chat 
+          agentId={agent.id} 
+          initialMessages={conversation.messages} 
+          hasApiKey={!!apiKey}
+          provider={agent.llmProvider}
+        />
       </div>
     </div>
   );
