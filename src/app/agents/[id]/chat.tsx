@@ -11,7 +11,7 @@ interface ChatProps {
   agentId: string;
   initialMessages: Message[];
   hasApiKey: boolean;
-  provider: "OPENAI" | "ANTHROPIC";
+  provider: "OPENAI" | "ANTHROPIC" | "GEMINI" | "MISTRAL";
 }
 
 export function Chat({ agentId, initialMessages, hasApiKey, provider }: ChatProps) {

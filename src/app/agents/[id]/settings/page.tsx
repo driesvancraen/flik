@@ -27,7 +27,7 @@ const agentFormSchema = z.object({
   systemPrompt: z.string().min(1, "System prompt is required"),
   firstMessage: z.string().min(1, "First message is required"),
   isPublic: z.boolean().default(false),
-  llmProvider: z.enum(["OPENAI", "ANTHROPIC"]),
+  llmProvider: z.enum(["OPENAI", "ANTHROPIC", "GEMINI", "MISTRAL"]),
   llmModel: z.string().min(1, "Model is required"),
   llmTemperature: z.number().min(0).max(2).default(0.7),
   llmMaxTokens: z.number().min(1).max(32000).default(1000),
@@ -228,16 +228,21 @@ export default function AgentSettingsPage({
                 id="llmProvider"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onChange={(e) => {
-                  form.setValue("llmProvider", e.target.value as "OPENAI" | "ANTHROPIC");
+                  form.setValue("llmProvider", e.target.value as "OPENAI" | "ANTHROPIC" | "GEMINI" | "MISTRAL");
                   // Set a default model based on the selected provider
                   form.setValue(
                     "llmModel",
-                    e.target.value === "OPENAI" ? OPENAI_MODELS[0] : ANTHROPIC_MODELS[0]
+                    e.target.value === "OPENAI" ? OPENAI_MODELS[0] :
+                    e.target.value === "ANTHROPIC" ? ANTHROPIC_MODELS[0] :
+                    e.target.value === "GEMINI" ? "gemini-1" :
+                    "mistral-8x7b"
                   );
                 }}
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="ANTHROPIC">Anthropic</option>
+                <option value="GEMINI">Gemini</option>
+                <option value="MISTRAL">Mistral</option>
               </select>
             </div>
 
@@ -256,12 +261,16 @@ export default function AgentSettingsPage({
                       {model}
                     </option>
                   ))
-                ) : (
+                ) : provider === "ANTHROPIC" ? (
                   ANTHROPIC_MODELS.map((model) => (
                     <option key={model} value={model}>
                       {model}
                     </option>
                   ))
+                ) : provider === "GEMINI" ? (
+                  ["gemini-1"]
+                ) : (
+                  ["mistral-8x7b"]
                 )}
               </select>
               {form.formState.errors.llmModel && (

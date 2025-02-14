@@ -78,7 +78,12 @@ export default async function SharedAgentPage({ params }: PageProps) {
             </div>
           </div>
 
-          <Chat agentId={agent.id} initialMessages={conversation.messages} />
+          <Chat 
+            agentId={agent.id} 
+            initialMessages={conversation.messages} 
+            hasApiKey={true} 
+            provider={agent.llmProvider}
+          />
         </div>
       </div>
     </div>
