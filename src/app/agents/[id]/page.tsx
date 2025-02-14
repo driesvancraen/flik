@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { MessageCircle, Settings } from "lucide-react";
+import { MessageCircle, Settings, Share2 } from "lucide-react";
 import Link from "next/link";
 import { Chat } from "./chat";
 import { Documents } from "./documents";
+import { ShareButton } from "./share-button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -90,6 +91,11 @@ export default async function AgentPage({ params }: PageProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ShareButton
+            agentId={agent.id}
+            isPublic={agent.isPublic}
+            shareId={agent.shareId}
+          />
           <Link
             href={`/agents/${agent.id}/settings`}
             className="inline-flex items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"

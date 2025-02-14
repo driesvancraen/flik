@@ -15,12 +15,13 @@ export default async function SharedAgentPage({ params }: PageProps) {
       shareId,
       isPublic: true,
     },
-    include: {
-      knowledgeBase: {
-        include: {
-          documents: true,
-        },
-      },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      firstMessage: true,
+      llmProvider: true,
+      llmModel: true,
     },
   });
 
@@ -34,10 +35,6 @@ export default async function SharedAgentPage({ params }: PageProps) {
       agentId: agent.id,
       messages: {
         create: [
-          {
-            role: "SYSTEM",
-            content: agent.systemPrompt,
-          },
           {
             role: "ASSISTANT",
             content: agent.firstMessage,
@@ -67,7 +64,7 @@ export default async function SharedAgentPage({ params }: PageProps) {
         <div className="grid gap-6 md:grid-cols-[300px_1fr]">
           <div className="space-y-6">
             <div className="rounded-lg border bg-background p-4">
-              <h2 className="font-semibold">Model Settings</h2>
+              <h2 className="font-semibold">About this AI Assistant</h2>
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Provider</dt>
@@ -77,30 +74,8 @@ export default async function SharedAgentPage({ params }: PageProps) {
                   <dt className="text-muted-foreground">Model</dt>
                   <dd>{agent.llmModel}</dd>
                 </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Temperature</dt>
-                  <dd>{agent.llmTemperature}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Max Tokens</dt>
-                  <dd>{agent.llmMaxTokens}</dd>
-                </div>
               </dl>
             </div>
-
-            {agent.knowledgeBase && (
-              <div className="rounded-lg border bg-background p-4">
-                <h2 className="font-semibold">Knowledge Base</h2>
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium">
-                    {agent.knowledgeBase.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {agent.knowledgeBase.documents.length} documents
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
           <Chat agentId={agent.id} initialMessages={conversation.messages} />

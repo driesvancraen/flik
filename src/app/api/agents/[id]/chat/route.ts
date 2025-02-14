@@ -21,20 +21,24 @@ export async function POST(
       params,
     ]);
 
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const json = await req.json();
     const body = chatRequestSchema.parse(json);
 
     const { id } = resolvedParams;
 
-    // Get the agent and verify ownership
-    const agent = await db.agent.findUnique({
+    // Get the agent - either by ownership or by public share ID
+    const agent = await db.agent.findFirst({
       where: {
-        id,
-        userId: session.user.id,
+        OR: [
+          {
+            id,
+            userId: session?.user?.id,
+          },
+          {
+            id,
+            isPublic: true,
+          },
+        ],
       },
       include: {
         knowledgeBase: {
@@ -103,8 +107,12 @@ export async function POST(
       },
     });
 
-    // Create chat chain and generate response
-    const chain = await createChatChain(agent as Agent, conversation.messages, documents);
+    // Create chat chain and get response
+    const chain = await createChatChain(
+      agent as Agent,
+      conversation.messages,
+      documents
+    );
     const response = await chain.invoke(body.message);
 
     // Add assistant message to conversation
@@ -123,11 +131,53 @@ export async function POST(
       assistantMessageId: assistantMessage.id,
     });
   } catch (error) {
+    console.error("Chat error:", error);
     if (error instanceof z.ZodError) {
       return new NextResponse(JSON.stringify(error.issues), { status: 422 });
     }
 
-    console.error("Chat error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const [session, resolvedParams] = await Promise.all([
+      auth(),
+      params,
+    ]);
+
+    if (!session?.user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { id } = resolvedParams;
+
+    // Verify agent ownership
+    const agent = await db.agent.findUnique({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
+
+    if (!agent) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
+    // Delete all conversations
+    await db.conversation.deleteMany({
+      where: {
+        agentId: id,
+      },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("Chat reset error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 } 
