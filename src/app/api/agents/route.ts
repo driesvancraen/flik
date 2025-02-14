@@ -9,7 +9,7 @@ const agentCreateSchema = z.object({
   systemPrompt: z.string().min(1),
   firstMessage: z.string().min(1),
   isPublic: z.boolean().default(false),
-  llmProvider: z.enum(["OPENAI", "ANTHROPIC"]),
+  llmProvider: z.enum(["OPENAI", "ANTHROPIC", "GEMINI", "MISTRAL"]),
   llmModel: z.string().min(1),
   llmTemperature: z.number().min(0).max(2),
   llmMaxTokens: z.number().min(1).max(32000),

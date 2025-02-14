@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { Trash, Key, ExternalLink } from "lucide-react";
+import { Trash, ExternalLink } from "lucide-react";
 import type { ApiKey } from "@/types";
+
+type Provider = "OPENAI" | "ANTHROPIC" | "GEMINI" | "MISTRAL";
 
 export default function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [openaiKey, setOpenaiKey] = useState("");
   const [anthropicKey, setAnthropicKey] = useState("");
+  const [geminiKey, setGeminiKey] = useState("");
+  const [mistralKey, setMistralKey] = useState("");
 
   useEffect(() => {
     loadApiKeys();
@@ -32,7 +36,7 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSubmit(provider: "OPENAI" | "ANTHROPIC", key: string) {
+  async function handleSubmit(provider: Provider, key: string) {
     try {
       const response = await fetch("/api/api-keys", {
         method: "POST",
@@ -52,10 +56,19 @@ export default function SettingsPage() {
       setApiKeys((prev) => [newKey, ...prev.filter(k => k.provider !== provider)]);
       
       // Reset the input
-      if (provider === "OPENAI") {
-        setOpenaiKey("");
-      } else {
-        setAnthropicKey("");
+      switch (provider) {
+        case "OPENAI":
+          setOpenaiKey("");
+          break;
+        case "ANTHROPIC":
+          setAnthropicKey("");
+          break;
+        case "GEMINI":
+          setGeminiKey("");
+          break;
+        case "MISTRAL":
+          setMistralKey("");
+          break;
       }
 
       toast({
@@ -96,6 +109,8 @@ export default function SettingsPage() {
 
   const activeOpenaiKey = apiKeys.find(key => key.provider === "OPENAI" && key.isActive);
   const activeAnthropicKey = apiKeys.find(key => key.provider === "ANTHROPIC" && key.isActive);
+  const activeGeminiKey = apiKeys.find(key => key.provider === "GEMINI" && key.isActive);
+  const activeMistralKey = apiKeys.find(key => key.provider === "MISTRAL" && key.isActive);
 
   return (
     <div className="container max-w-4xl py-8">
@@ -219,6 +234,116 @@ export default function SettingsPage() {
                     className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                   >
                     Save Anthropic Key
+                  </button>
+                </form>
+              ) : null}
+            </div>
+
+            {/* Gemini Section */}
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-medium">Gemini</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {activeGeminiKey ? "API key configured" : "No API key configured"}
+                  </p>
+                </div>
+                {activeGeminiKey && (
+                  <button
+                    onClick={() => handleDelete(activeGeminiKey.id)}
+                    className="text-sm text-destructive hover:text-destructive/90"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {!activeGeminiKey ? (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("GEMINI", geminiKey);
+                  }}
+                  className="mt-4 space-y-4"
+                >
+                  <div className="grid gap-2">
+                    <input
+                      type="password"
+                      value={geminiKey}
+                      onChange={(e) => setGeminiKey(e.target.value)}
+                      placeholder="Enter your Gemini API key"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      required
+                    />
+                    <a
+                      href="https://makersuite.google.com/app/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Get API key from Google AI Studio
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save Gemini Key
+                  </button>
+                </form>
+              ) : null}
+            </div>
+
+            {/* Mistral Section */}
+            <div className="rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-medium">Mistral</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {activeMistralKey ? "API key configured" : "No API key configured"}
+                  </p>
+                </div>
+                {activeMistralKey && (
+                  <button
+                    onClick={() => handleDelete(activeMistralKey.id)}
+                    className="text-sm text-destructive hover:text-destructive/90"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {!activeMistralKey ? (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmit("MISTRAL", mistralKey);
+                  }}
+                  className="mt-4 space-y-4"
+                >
+                  <div className="grid gap-2">
+                    <input
+                      type="password"
+                      value={mistralKey}
+                      onChange={(e) => setMistralKey(e.target.value)}
+                      placeholder="Enter your Mistral API key"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      required
+                    />
+                    <a
+                      href="https://console.mistral.ai/api-keys"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Get API key from Mistral
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save Mistral Key
                   </button>
                 </form>
               ) : null}

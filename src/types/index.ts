@@ -6,7 +6,7 @@ export type Agent = {
   firstMessage: string;
   isPublic: boolean;
   shareId: string | null;
-  llmProvider: "OPENAI" | "ANTHROPIC";
+  llmProvider: "OPENAI" | "ANTHROPIC" | "GEMINI" | "MISTRAL";
   llmModel: string;
   llmTemperature: number;
   llmMaxTokens: number;
@@ -40,7 +40,7 @@ export interface KnowledgeBase {
 export interface ApiKey {
   id: string;
   name: string;
-  provider: "OPENAI" | "ANTHROPIC";
+  provider: "OPENAI" | "ANTHROPIC" | "GEMINI" | "MISTRAL";
   key: string;
   isActive: boolean;
   createdAt: string;

@@ -7,17 +7,28 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 
-const OPENAI_MODELS = [
-  "gpt-4-turbo-preview",
-  "gpt-4",
-  "gpt-3.5-turbo",
-] as const;
-
-const ANTHROPIC_MODELS = [
-  "claude-3-opus-20240229",
-  "claude-3-sonnet-20240229",
-  "claude-2.1",
-] as const;
+const PROVIDER_MODELS = {
+  OPENAI: [
+    { id: "gpt-4-turbo-preview", name: "GPT-4 Turbo" },
+    { id: "gpt-4", name: "GPT-4" },
+    { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
+  ],
+  ANTHROPIC: [
+    { id: "claude-3-opus-20240229", name: "Claude 3 Opus" },
+    { id: "claude-3-sonnet-20240229", name: "Claude 3 Sonnet" },
+    { id: "claude-3-haiku-20240307", name: "Claude 3 Haiku" },
+    { id: "claude-2.1", name: "Claude 2.1" },
+  ],
+  GEMINI: [
+    { id: "gemini-1.0-pro", name: "Gemini 1.0 Pro" },
+    { id: "gemini-1.0-pro-vision", name: "Gemini 1.0 Pro Vision" },
+  ],
+  MISTRAL: [
+    { id: "mistral-large-latest", name: "Mistral Large" },
+    { id: "mistral-medium-latest", name: "Mistral Medium" },
+    { id: "mistral-small-latest", name: "Mistral Small" },
+  ],
+} as const;
 
 const agentFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -25,7 +36,7 @@ const agentFormSchema = z.object({
   systemPrompt: z.string().min(1, "System prompt is required"),
   firstMessage: z.string().min(1, "First message is required"),
   isPublic: z.boolean().default(false),
-  llmProvider: z.enum(["OPENAI", "ANTHROPIC"]),
+  llmProvider: z.enum(["OPENAI", "ANTHROPIC", "GEMINI", "MISTRAL"]),
   llmModel: z.string().min(1, "Model is required"),
   llmTemperature: z.number().min(0).max(2).default(0.7),
   llmMaxTokens: z.number().min(1).max(32000).default(1000),
@@ -35,7 +46,7 @@ type AgentFormValues = z.infer<typeof agentFormSchema>;
 
 const defaultValues: Partial<AgentFormValues> = {
   llmProvider: "OPENAI",
-  llmModel: "gpt-4-turbo-preview",
+  llmModel: PROVIDER_MODELS.OPENAI[0].id,
   llmTemperature: 0.7,
   llmMaxTokens: 1000,
   isPublic: false,
@@ -172,16 +183,15 @@ export default function CreateAgentPage() {
                 id="llmProvider"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onChange={(e) => {
-                  form.setValue("llmProvider", e.target.value as "OPENAI" | "ANTHROPIC");
-                  // Set a default model based on the selected provider
-                  form.setValue(
-                    "llmModel",
-                    e.target.value === "OPENAI" ? OPENAI_MODELS[0] : ANTHROPIC_MODELS[0]
-                  );
+                  const newProvider = e.target.value as keyof typeof PROVIDER_MODELS;
+                  form.setValue("llmProvider", newProvider);
+                  form.setValue("llmModel", PROVIDER_MODELS[newProvider][0].id);
                 }}
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="ANTHROPIC">Anthropic</option>
+                <option value="GEMINI">Gemini</option>
+                <option value="MISTRAL">Mistral</option>
               </select>
             </div>
 
@@ -194,19 +204,11 @@ export default function CreateAgentPage() {
                 id="llmModel"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {provider === "OPENAI" ? (
-                  OPENAI_MODELS.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))
-                ) : (
-                  ANTHROPIC_MODELS.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))
-                )}
+                {PROVIDER_MODELS[provider].map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))}
               </select>
               {form.formState.errors.llmModel && (
                 <p className="text-sm text-destructive">

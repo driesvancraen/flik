@@ -54,6 +54,8 @@ model Agent {
 enum LLMProvider {
   OPENAI
   ANTHROPIC
+  GEMINI
+  MISTRAL
 }
 
 model KnowledgeBase {
