@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Flik - AI Agent Management Platform",
+  title: "MindShare - AI Agent Management Platform",
   description: "Create, manage, and share your AI agents with ease.",
 };
 

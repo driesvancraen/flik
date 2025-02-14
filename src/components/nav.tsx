@@ -43,7 +43,7 @@ export function Nav() {
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">Flik</span>
+            <span className="hidden font-bold sm:inline-block">MindShare</span>
           </Link>
           <div className="hidden md:flex items-center space-x-6 text-sm font-medium">
             {navigation.map((item) => {

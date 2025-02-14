@@ -1,4 +1,4 @@
-# Flik - AI Agent Management Platform
+# MindShare - AI Agent Management Platform
 
 Create, manage, and share your AI agents with ease.
 
