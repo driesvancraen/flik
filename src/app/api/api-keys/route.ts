@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import * as z from "zod";
+import { hashApiKey } from "@/lib/utils";
 
 const apiKeyCreateSchema = z.object({
   name: z.string().min(1),
-  provider: z.enum(["OPENAI", "ANTHROPIC"]),
+  provider: z.enum(["OPENAI", "ANTHROPIC", "GEMINI", "MISTRAL"]),
   key: z.string().min(1),
 });
 
@@ -58,9 +59,14 @@ export async function POST(req: Request) {
       },
     });
 
+    // Hash the API key before storing it
+    const hashedKey = hashApiKey(body.key);
+
     const apiKey = await db.apiKey.create({
       data: {
-        ...body,
+        name: body.name,
+        provider: body.provider,
+        key: hashedKey, // Store the hashed key
         userId: session.user.id,
         isActive: true,
       },

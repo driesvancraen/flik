@@ -4,10 +4,11 @@ Create, manage, and share your AI agents with ease.
 
 ## Features
 
-- Create and customize AI agents with different LLM providers (OpenAI, Anthropic)
+- Create and customize AI agents with different LLM providers (OpenAI, Anthropic, Gemini, Mistral)
 - Upload documents to create a knowledge base for your agents
 - Chat with your agents and get responses based on their knowledge
 - Share your agents with others using secure links
+- Secure storage of API keys with encryption
 
 ## Setup
 
@@ -31,6 +32,9 @@ NEXTAUTH_URL=http://localhost:3000
 # LLM Providers
 OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# API Key Encryption
+API_KEY_SECRET=your_api_key_encryption_secret
 ```
 
 ### 2. Supabase Setup for Document Embeddings
@@ -92,6 +96,23 @@ npm install
 
 # Run the development server
 npm run dev
+```
+
+## Security
+
+### API Key Encryption
+
+User-provided API keys are encrypted before being stored in the database using AES-256-CBC encryption. This ensures that API keys are not stored in plaintext and are only decrypted when needed for API calls.
+
+The encryption uses:
+- A secret key defined in the `API_KEY_SECRET` environment variable
+- A unique initialization vector (IV) for each API key
+- The encrypted key and IV are stored together in the database
+
+When migrating from a previous version without encryption, run the migration script:
+
+```bash
+npx ts-node scripts/migrate-api-keys.ts
 ```
 
 ## Development

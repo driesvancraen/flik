@@ -7,6 +7,7 @@ import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { Document } from "@langchain/core/documents";
 import { createClient } from "@supabase/supabase-js";
+import { unhashApiKey } from "@/lib/utils";
 
 import type { Agent, Message } from "@/types";
 
@@ -129,7 +130,16 @@ async function getApiKeyForAgent(agent: Agent) {
     },
   });
 
-  return apiKey?.key;
+  // Return null if no API key found
+  if (!apiKey?.key) return null;
+  
+  // Unhash the API key before returning it
+  try {
+    return unhashApiKey(apiKey.key);
+  } catch (error) {
+    console.error(`Error unhashing API key for ${agent.llmProvider}:`, error);
+    return null;
+  }
 }
 
 async function getOpenAIKey(userId: string) {
@@ -145,5 +155,14 @@ async function getOpenAIKey(userId: string) {
     },
   });
 
-  return apiKey?.key;
+  // Return null if no API key found
+  if (!apiKey?.key) return null;
+  
+  // Unhash the API key before returning it
+  try {
+    return unhashApiKey(apiKey.key);
+  } catch (error) {
+    console.error("Error unhashing OpenAI API key:", error);
+    return null;
+  }
 } 
